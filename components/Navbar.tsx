@@ -103,7 +103,7 @@ const Navbar = () => {
                                     <UserButton.Action label="signOut" />
                                 </UserButton.MenuItems>
 
-                                <UserButton.UserProfilePage
+                                {/* <UserButton.UserProfilePage
                                     label="My Plan"
                                     url="billing"
                                     labelIcon={<CreditCard size={16} />}
@@ -132,7 +132,7 @@ const Navbar = () => {
                                             View Plans
                                         </Link>
                                     </div>
-                                </UserButton.UserProfilePage>
+                                </UserButton.UserProfilePage> */}
                             </UserButton>
 
                             {user?.firstName && (
