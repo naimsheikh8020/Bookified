@@ -7,37 +7,53 @@ import Book from "@/database/models/book.model";
 import BookSegment from "@/database/models/book-segment.model";
 import mongoose from "mongoose";
 import {getUserPlan} from "@/lib/subscription.server";
+import { auth } from "@clerk/nextjs/server";
 
 export const getAllBooks = async (search?: string) => {
     try {
-        await connectToDatabase();
+        const { userId } = await auth();
 
-        let query = {};
-
-        if (search) {
-            const escapedSearch = escapeRegex(search);
-            const regex = new RegExp(escapedSearch, 'i');
-            query = {
-                $or: [
-                    { title: { $regex: regex } },
-                    { author: { $regex: regex } },
-                ]
+        if (!userId) {
+            return {
+                success: false,
+                error: "Unauthorized",
             };
         }
 
-        const books = await Book.find(query).sort({ createdAt: -1 }).lean();
+        await connectToDatabase();
+
+        const query: Record<string, any> = {
+            clerkId: userId,
+        };
+
+        if (search?.trim()) {
+            const escapedSearch = escapeRegex(search.trim());
+            const regex = new RegExp(escapedSearch, "i");
+
+            query.$or = [
+                { title: { $regex: regex } },
+                { author: { $regex: regex } },
+            ];
+        }
+
+        const books = await Book.find(query)
+            .sort({ createdAt: -1 })
+            .lean();
 
         return {
             success: true,
-            data: serializeData(books)
-        }
-    } catch (e) {
-        console.error('Error connecting to database', e);
+            data: serializeData(books),
+        };
+
+    } catch (error) {
+        console.error("Error fetching books:", error);
+
         return {
-            success: false, error: e
-        }
+            success: false,
+            error: "Failed to fetch books",
+        };
     }
-}
+};
 
 export const checkBookExists = async (title: string) => {
     try {
